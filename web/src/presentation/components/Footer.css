@@ -1,0 +1,20 @@
+.footer-bar {
+  background: var(--color-footer-bg);
+  color: var(--color-footer-text);
+  font-size: 13px;
+  padding: 30px 0;
+}
+
+.footer-bar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .footer-bar-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+}
