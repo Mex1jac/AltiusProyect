@@ -43,7 +43,7 @@ Desarrollar una sitio web que permita mostrar los productos y proyectos de eleva
 
 - **Frontend (dev):** `cd web && npm run dev` → `http://localhost:5173`.
 - **Build de producción:** `cd web && npm run build` (tsc + vite).
-- **Tests:** `cd web && npm test` (Vitest, 13 archivos / 66 tests).
+- **Tests:** `cd web && npm test` (Vitest, 13 archivos / 67 tests).
 - **Lint:** `cd web && npm run lint` (oxlint).
 - El backend (.NET) se agregará en la tarea #2 del backlog.
 
@@ -67,10 +67,10 @@ Desarrollar una sitio web que permita mostrar los productos y proyectos de eleva
 Lee el archivo spec.md para cada una de las funcionlidades que no esten completadas y actualiza spec.md y este archivo cuando se completen
 | # | Tarea | Prioridad | Estado | Notas |
 |---|-------|-----------|--------|-------|
-| 1 | hacer una copia exacta de la pagina  "https://www.elevadoresaltius.com/" en react + vite la estructura y navegacion deben ser identicas    | Alta          | Completada | Ver spec.md sección "Delivered (Task-01)": 5 páginas con rutas idénticas a los slugs originales, DDD (`domain/application/infrastructure/presentation`), 45 imágenes locales, Font Awesome, widget WhatsApp, 66 tests en verde, E2E chrome-devtools en 1920/768/375 px sin overflow ni errores de consola. |
-|
+| 1 | hacer una copia exacta de la pagina  "https://www.elevadoresaltius.com/" en react + vite la estructura y navegacion deben ser identicas    | Alta          | Completada | Ver spec.md sección "Delivered (Task-01)": 5 páginas con rutas idénticas a los slugs originales, DDD (`domain/application/infrastructure/presentation`), 45 imágenes locales, Font Awesome, widget WhatsApp, 67 tests en verde, E2E chrome-devtools en 1920/768/375 px sin overflow ni errores de consola. |
+| 2 | en varias resoluciones el globo de whatsup queda por debajo de la linea de vision del usuario | Alta | Completada | Ver spec.md sección "Delivered (Task-02)": el popup abierto se salía del viewport en pantallas bajas/landscape (1024×600, 812×375, 744×390). Fix en `WhatsAppWidget.css` (max-height con `dvh`, lista con scroll, tooltip oculto con popup abierto). Popup `fullyVisible` en 10 resoluciones, 67 tests en verde. |
+
 ## 9. Notas y decisiones
 - El frontend es una **SPA React** servida aparte por Vite en desarrollo; en producción se puede publicar en `wwwroot`.
 - **Configuración por entorno:** CORS se controla con la sección `Cors:AllowedOrigins` en `appsettings.json` (vacío por defecto). El origen del frontend en dev (`http://localhost:5173`) se define en `appsettings.Development.json`.
 - **Credenciales:** la cadena de conexión solo vive en `appsettings.Development.json` (ignorado por git) o en la variable de entorno `ConnectionStrings`. Nunca en el código ni en `appsettings.json`.
-

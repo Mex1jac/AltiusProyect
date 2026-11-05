@@ -48,6 +48,19 @@ describe('WhatsAppWidget', () => {
     );
   });
 
+  it('marks the widget as open so CSS can hide the tooltip and cap the popup height', async () => {
+    const user = userEvent.setup();
+    renderWithSite(<WhatsAppWidget />);
+    const widget = document.querySelector('.whatsapp-widget');
+    expect(widget).not.toHaveClass('is-open');
+
+    await user.click(screen.getByRole('button', { name: /abrir atención por whatsapp/i }));
+    expect(widget).toHaveClass('is-open');
+
+    await user.click(screen.getByRole('button', { name: /cerrar atención por whatsapp/i }));
+    expect(widget).not.toHaveClass('is-open');
+  });
+
   it('closes the popup again on the second click', async () => {
     const user = userEvent.setup();
     renderWithSite(<WhatsAppWidget />);

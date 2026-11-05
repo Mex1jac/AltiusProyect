@@ -5,6 +5,7 @@
 | # | Tarea | Prioridad | Estado | Notas |
 |---|-------|-----------|--------|-------|
 | 1 | Copia de https://www.elevadoresaltius.com/ en React + Vite con estructura y navegación idénticas | Alta | Completada | Ver sección "Delivered (Task-01)" |
+| 2 | El globo de WhatsApp queda fuera de la línea de visión en varias resoluciones | Alta | Completada | Ver sección "Delivered (Task-02)" |
 
 ---
 
@@ -83,7 +84,7 @@ presentation/                      # React: páginas, componentes, hooks, contex
 
 ### Tests (Vitest + Testing Library — jsdom)
 
-13 archivos, **66 tests, todos en verde**:
+13 archivos, **67 tests, todos en verde**:
 
 | Archivo | Cubre |
 |---------|-------|
@@ -92,7 +93,7 @@ presentation/                      # React: páginas, componentes, hooks, contex
 | `src/test/appRouting.test.tsx` | Las 5 rutas renderizan + `document.title` correcto, navegación por el header, ruta desconocida → home, chrome permanente en todas las páginas |
 | `Header.test.tsx` | Logo + 5 links, ruta activa, hamburguesa (aria-expanded) |
 | `Footer.test.tsx` | Copyright + powered by |
-| `WhatsAppWidget.test.tsx` | Apertura/cierre, 3 agentes, hrefs `api.whatsapp.com` con cada teléfono |
+| `WhatsAppWidget.test.tsx` | Apertura/cierre, 3 agentes, hrefs `api.whatsapp.com` con cada teléfono, clase `is-open` (habilita el tope del popup) |
 | `RichTextView.test.tsx` | Texto plano, `<strong>`, enlaces inline |
 | `Slideshow.test.tsx` | 1 div por slide, delays escalonados, duración total, aria-hidden |
 | `HomePage.test.tsx` | Hero + CTA, acerca de, 3 blurbs, 4 tarjetas, FAQ externo, redes + píldora |
@@ -120,6 +121,52 @@ npm install
 npm run dev        # http://localhost:5173
 npm run lint       # oxlint
 npm run build      # tsc -b && vite build
-npm test           # vitest run (13 archivos / 66 tests)
+npm test           # vitest run (13 archivos / 67 tests)
 npm run test:coverage
 ```
+
+---
+
+## Delivered (Task-02 — widget WhatsApp siempre visible)
+
+**Problema reportado:** "en varias resoluciones el globo de WhatsApp queda por
+debajo de la línea de visión del usuario".
+
+**Diagnóstico (medido con chrome-devtools):** el FAB cerrado estaba siempre
+visible en las 5 páginas × 9 resoluciones (1920→360 px), se mantenía `fixed`
+al hacer scroll y sin elementos encima (`elementFromPoint`). El fallo real era
+el **popup abierto**: crecía hacia arriba desde el FAB sin límite y se salía
+por el borde superior en pantallas bajas o landscape:
+
+| Viewport | top del popup (antes) | top (después) |
+|---|---|---|
+| 1440×700 | 92 ✓ | 164 ✓ |
+| 1024×600 | **−8 ✗** | 64 ✓ |
+| 812×375 (landscape) | **−233 ✗** | 16 ✓ |
+| 744×390 (landscape) | **−218 ✗** | 16 ✓ |
+| 1366×768 / 768×1024 / 375×812 / 360×640 / 1920×1080 | ✓ | ✓ |
+
+**Solución (solo `WhatsAppWidget.css` + clase `is-open` ya existente):**
+
+1. `.whatsapp-popup` con `max-height: calc(100dvh - 182px)` (reserva: FAB 56 +
+   gap 14 + offset inferior 96 + margen superior 16) y `display: flex` en
+   columna; cabecera y aviso con `flex-shrink: 0`.
+2. `.whatsapp-agents` con `overflow-y: auto` → en viewports cortos la lista de
+   agentes hace scroll dentro del popup (evidencia: 812×375).
+3. `.whatsapp-widget.is-open .whatsapp-tooltip { display: none }` → el tooltip
+   es redundante con el popup abierto (conducta del original, que lo oculta) y
+   libera 72 px de altura.
+4. `@media (max-width: 600px)`: `max-height: calc(100dvh - 110px)` (menor
+   offset inferior: 24 px, sin tooltip).
+
+**Verificación E2E (chrome-devtools):**
+
+- Popup abierto `fullyVisible: true` en 9 resoluciones: 1920×1080, 1440×700,
+  1366×768, 1024×768, **1024×600**, 768×1024, **812×375**, **744×390**,
+  375×812 y 360×640.
+- Screenshots de evidencia: `wa-fix-open-1024x600.png`, `wa-fix-open-812x375.png`,
+  `wa-fix-open-1366x768.png`.
+- Sin errores de consola al abrir/cerrar el popup en 1920×1080, 768×1024 y
+  375×812.
+- Test nuevo: `marks the widget as open so CSS can hide the tooltip and cap
+  the popup height` → **13 archivos / 67 tests en verde**.

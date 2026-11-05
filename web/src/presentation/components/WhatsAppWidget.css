@@ -64,10 +64,16 @@
 .whatsapp-popup {
   width: 351px;
   max-width: calc(100vw - 40px);
+  /* Keep the popup inside the viewport on short screens: reserve room for the
+     FAB, the 14px gap, the 96px bottom offset and a 16px top margin. */
+  max-height: calc(100vh - 182px);
+  max-height: calc(100dvh - 182px);
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
 
 .whatsapp-popup[hidden] {
@@ -75,6 +81,7 @@
 }
 
 .whatsapp-popup-head {
+  flex-shrink: 0;
   background: var(--color-whatsapp);
   padding: 18px 20px 16px;
 }
@@ -94,12 +101,16 @@
 }
 
 .whatsapp-popup-notice {
+  flex-shrink: 0;
   font-size: 11px;
   color: #777;
   margin: 12px 20px 4px;
 }
 
 .whatsapp-agents {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   list-style: none;
   margin: 0;
   padding: 8px 12px 16px;
@@ -148,6 +159,13 @@
   color: #777;
 }
 
+/* The tooltip is redundant while the popup is open and its space would push
+   the popup above the viewport on short/landscape screens (same as the
+   original site, which hides it while the popup is shown). */
+.whatsapp-widget.is-open .whatsapp-tooltip {
+  display: none;
+}
+
 @media (max-width: 600px) {
   .whatsapp-tooltip {
     display: none;
@@ -156,5 +174,11 @@
   .whatsapp-widget {
     bottom: 24px;
     padding-right: 16px;
+  }
+
+  /* Mobile reserves less room: FAB 56px + 14px gap + 24px offset + 16px. */
+  .whatsapp-popup {
+    max-height: calc(100vh - 110px);
+    max-height: calc(100dvh - 110px);
   }
 }
