@@ -6,8 +6,48 @@
 |---|-------|-----------|--------|-------|
 | 1 | Copia de https://www.elevadoresaltius.com/ en React + Vite con estructura y navegación idénticas | Alta | Completada | Ver sección "Delivered (Task-01)" |
 | 2 | El globo de WhatsApp queda fuera de la línea de visión en varias resoluciones | Alta | Completada | Ver sección "Delivered (Task-02)" |
+| 3 | Backend .NET 10 con ASP.NET Core, DDD, Dapper y MySQL | Alta | En progreso | Solución/API y capas iniciales listas; esquema aplicado a Altius (7 tablas, 6 relaciones FK). |
+| 4 | Catálogo de productos administrable remotamente | Alta | En progreso | API de categorías/productos implementada parcialmente; faltan imágenes y aplicación administrativa. |
+| 5 | Cotizaciones con seguimiento a partir del catálogo | Alta | En progreso | Creación, versiones, estados, historial y snapshots implementados; faltan PDF, búsqueda y pruebas MySQL. |
+| 6 | Carrito y pagos para productos y anticipos | Alta | Pendiente | Depende del catálogo y cotizaciones. |
 
 ---
+
+## In Progress (Tasks 03-05 — backend, catálogo y cotizaciones)
+
+### Backend
+
+- Solución `ElevadoresAltius.slnx` con API ASP.NET Core 10 y proyecto xUnit en `Backend/`.
+- Capas organizadas dentro del API: `Domain`, `Application`, `Infrastructure` y `Controllers`.
+- Dapper + MySqlConnector. La conexión se lee desde `ConnectionStrings:Altius`; en el entorno local está configurada en `Backend/Altius.Api/appsettings.Development.json` (ignorado por Git). También se puede definir con `ConnectionStrings__Altius`; no hay credenciales en `appsettings.json`.
+- CORS lee `Cors:AllowedOrigins`; no se permiten orígenes por defecto.
+- Operaciones administrativas protegidas con `AdminApiKey` y el header `X-Admin-Api-Key`. Debe configurarse por entorno; esto es protección inicial, no reemplaza autenticación/roles para producción.
+- El DDL está en `Backend/Altius.Api/Infrastructure/Database/schema.sql` y se aplicó a la BD `Altius`: 7 tablas y 6 relaciones FK verificadas. No se insertaron datos iniciales.
+
+### Catálogo implementado
+
+- Categorías: listado público de activas, consulta individual, creación/edición y archivo lógico.
+- Productos: listado de activos por categoría, consulta, alta/edición y archivo lógico. Los productos de categorías archivadas tampoco aparecen en la lectura pública.
+- SKU único, precio en MXN y referencia de categoría. El esquema incluye metadatos de imágenes, pero faltan endpoints de imágenes y almacenamiento de archivos.
+- Rutas base: `GET/POST /api/catalog/categories`, `GET/PUT /api/catalog/categories/{id}`, `PATCH /api/catalog/categories/{id}/active`; `GET/POST /api/catalog/products`, `GET/PUT /api/catalog/products/{id}`, `PATCH /api/catalog/products/{id}/active`.
+
+### Cotizaciones implementadas
+
+- Crear y consultar cotizaciones versionadas; revisar una cotización enviada crea una nueva versión y conserva la anterior como `superseded`.
+- Estados `draft`, `sent`, `accepted`, `rejected`, `expired` y `superseded` con historial. Transiciones inválidas se rechazan.
+- Las líneas de catálogo toman nombre, SKU y precio vigentes del servidor; los conceptos manuales requieren precio propio. Cada línea conserva su snapshot y el desglose de impuesto. Los totales se calculan y persisten transaccionalmente.
+- Rutas: `POST /api/quotes`, `GET /api/quotes/{id}?version=...`, `POST /api/quotes/{id}/versions` y `PATCH /api/quotes/{id}/versions/{version}/status`.
+- Todas las rutas de cotización requieren `AdminApiKey` en esta fase. El formato del número de cotización (`COT-{año}-{16 caracteres hex}`) es provisional.
+- Faltan PDF, búsqueda/listado paginado, datos de cliente reutilizables, pruebas de integración MySQL y el frontend administrativo.
+
+### Validación actual
+
+- `dotnet test ElevadoresAltius.slnx --no-restore`: 18 pruebas unitarias aprobadas.
+- El build de la solución se ejecuta como parte de `dotnet test` y termina correctamente.
+- En `Altius` se generaron datos de prueba con el lote `20261105-86b16d`: 6 categorías, 6 productos, 6 cotizaciones y 12 líneas.
+- Estados sembrados: 2 `draft`, 1 `sent`, 1 `accepted`, 1 `rejected` y 1 `expired`.
+- Verificación de datos: 0 discrepancias en subtotales/impuestos/totales y 0 discrepancias entre snapshots de catálogo y productos actuales.
+- No se han agregado pruebas de integración automatizadas; la persistencia se comprobó con consultas de lectura a MySQL.
 
 ## Delivered (Task-01 — copia del sitio original)
 
@@ -79,8 +119,9 @@ presentation/                      # React: páginas, componentes, hooks, contex
 5. **`useReveal` / `useCountUp`:** si `IntersectionObserver` no existe (jsdom)
    o hay `prefers-reduced-motion`, muestran el estado final de inmediato
    (contenido nunca queda oculto y los tests son deterministas).
-6. **Sin backend todavía:** el contenido vive en `infrastructure/data`. El
-   futuro API (backlog #2) sustituirá el repositorio sin tocar el resto.
+6. **Contenido público estático:** el contenido vive en `infrastructure/data`.
+  La API de administración/cotizaciones se desarrolla por separado y aún no
+  sustituye el repositorio de contenido público.
 
 ### Tests (Vitest + Testing Library — jsdom)
 
@@ -114,6 +155,8 @@ presentation/                      # React: páginas, componentes, hooks, contex
   oculto (<600 px); todo el contenido legible.
 
 ### Comandos
+
+La guía de ejecución conjunta del frontend y la API está en `README.md` en la raíz del repositorio.
 
 ```bash
 cd web
