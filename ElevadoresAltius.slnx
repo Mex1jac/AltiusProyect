@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Backend/">
+    <Project Path="Backend/Altius.Api/Altius.Api.csproj" />
+    <Project Path="Backend/Altius.Tests/Altius.Tests.csproj" />
+  </Folder>
+</Solution>
